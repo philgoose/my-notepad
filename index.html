@@ -2,86 +2,107 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>🚀 초보 탈출! 나의 스마트 메모장</title>
+    <title>🌟 프로페셔널 투두 & 메모장</title>
     <style>
-        :root { --primary-color: #4a90e2; --bg-color: #f8f9fa; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; padding: 50px; }
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; }
-        h2 { text-align: center; color: #333; font-size: 1.5rem; }
+        :root { --main-color: #6c5ce7; --bg-color: #f0f2f5; --success-color: #00b894; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; padding: 40px; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 400px; }
         
-        /* 2주 차 특징: 그림자와 포커스 효과에 진심임 */
-        textarea { width: 100%; height: 120px; border: 2px solid #ddd; border-radius: 8px; padding: 10px; resize: none; transition: border 0.3s; box-sizing: border-box; }
-        textarea:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 8px rgba(74,144,226,0.3); }
+        h2 { text-align: center; color: #2d3436; margin-bottom: 10px; }
         
-        button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: transform 0.1s; }
-        button:active { transform: scale(0.98); }
+        /* 진척도 바 추가 */
+        .progress-container { background: #eee; border-radius: 10px; height: 10px; margin-bottom: 20px; overflow: hidden; }
+        #progress-bar { background: var(--success-color); width: 0%; height: 100%; transition: width 0.3s ease; }
+
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 80px; border: 2px solid #dfe6e9; border-radius: 10px; padding: 12px; resize: none; box-sizing: border-box; transition: 0.3s; }
+        textarea:focus { border-color: var(--main-color); outline: none; }
         
-        .notes-count { font-size: 0.8rem; color: #666; text-align: right; margin-bottom: 10px; }
-        .note { background: #fff; border-left: 5px solid var(--primary-color); padding: 12px; margin-top: 15px; border-radius: 4px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); position: relative; animation: fadeIn 0.4s ease-in; }
-        
-        /* 2주 차의 꽃: 애니메이션 */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .date { font-size: 0.7rem; color: #999; display: block; margin-top: 5px; }
-        .delete-btn { position: absolute; right: 10px; top: 10px; cursor: pointer; color: #ff4d4d; font-weight: bold; }
-        .delete-btn:hover { color: #cc0000; }
+        button { padding: 12px; background: var(--main-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        button:hover { background: #a29bfe; }
+
+        .todo-item { display: flex; align-items: center; background: #fff; border: 1px solid #eee; padding: 15px; margin-top: 10px; border-radius: 12px; transition: 0.2s; animation: slideIn 0.3s ease-out; }
+        .todo-item:hover { transform: translateX(5px); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .todo-item.completed { background: #f9f9f9; opacity: 0.7; }
+        .todo-item.completed .text { text-decoration: line-through; color: #b2bec3; }
+
+        .checkbox { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; accent-color: var(--success-color); }
+        .text { flex-grow: 1; font-size: 0.95rem; color: #2d3436; }
+        .delete-btn { color: #ff7675; cursor: pointer; font-size: 0.8rem; margin-left: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>📝 My Memory Log</h2>
-        <div class="notes-count">저장된 메모: <span id="count">0</span>개</div>
-        <textarea id="note-input" placeholder="오늘 배운 내용을 기록해 보세요!"></textarea>
-        <button onclick="addNote()">메모 저장하기</button>
-        <div id="notes-list"></div>
+        <h2>✅ Success Planner</h2>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        
+        <div class="input-group">
+            <textarea id="todo-input" placeholder="오늘의 목표를 입력하세요..."></textarea>
+            <button onclick="addTodo()">목표 추가하기</button>
+        </div>
+        
+        <div id="todo-list"></div>
     </div>
 
     <script>
-        // 페이지 로드 시 기존 메모 불러오기
-        window.onload = () => { displayNotes(); };
+        window.onload = () => { displayTodos(); };
 
-        function addNote() {
-            const input = document.getElementById('note-input');
-            if (input.value.trim() === "") { alert("내용을 입력해주세요!"); return; }
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            if (input.value.trim() === "") return;
 
-            const notes = JSON.parse(localStorage.getItem('myNotes') || '[]');
-            const newNote = {
+            const todos = JSON.parse(localStorage.getItem('myTodos') || '[]');
+            const newTodo = {
                 id: Date.now(),
-                content: input.value,
-                date: new Date().toLocaleString()
+                text: input.value,
+                completed: false
             };
 
-            notes.push(newNote);
-            localStorage.setItem('myNotes', JSON.stringify(notes));
+            todos.push(newTodo);
+            localStorage.setItem('myTodos', JSON.stringify(todos));
             input.value = "";
-            displayNotes();
+            displayTodos();
         }
 
-        function displayNotes() {
-            const list = document.getElementById('notes-list');
-            const countSpan = document.getElementById('count');
-            const notes = JSON.parse(localStorage.getItem('myNotes') || '[]');
+        function toggleTodo(id) {
+            let todos = JSON.parse(localStorage.getItem('myTodos') || '[]');
+            todos = todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo);
+            localStorage.setItem('myTodos', JSON.stringify(todos));
+            displayTodos();
+        }
+
+        function deleteTodo(id) {
+            let todos = JSON.parse(localStorage.getItem('myTodos') || '[]');
+            todos = todos.filter(todo => todo.id !== id);
+            localStorage.setItem('myNotes', JSON.stringify(todos)); // 오타 주의: 키값 일치
+            localStorage.setItem('myTodos', JSON.stringify(todos));
+            displayTodos();
+        }
+
+        function displayTodos() {
+            const list = document.getElementById('todo-list');
+            const todos = JSON.parse(localStorage.getItem('myTodos') || '[]');
+            const progressBar = document.getElementById('progress-bar');
             
             list.innerHTML = "";
-            countSpan.innerText = notes.length;
-
-            notes.reverse().forEach(note => {
+            
+            todos.reverse().forEach(todo => {
                 const div = document.createElement('div');
-                div.className = 'note';
+                div.className = `todo-item ${todo.completed ? 'completed' : ''}`;
                 div.innerHTML = `
-                    <div>${note.content}</div>
-                    <span class="date">${note.date}</span>
-                    <span class="delete-btn" onclick="deleteNote(${note.id})">삭제</span>
+                    <input type="checkbox" class="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
+                    <span class="text">${todo.text}</span>
+                    <span class="delete-btn" onclick="deleteTodo(${todo.id})">삭제</span>
                 `;
                 list.appendChild(div);
             });
-        }
 
-        function deleteNote(id) {
-            let notes = JSON.parse(localStorage.getItem('myNotes') || '[]');
-            notes = notes.filter(note => note.id !== id);
-            localStorage.setItem('myNotes', JSON.stringify(notes));
-            displayNotes();
+            // 진척도 계산
+            const completedCount = todos.filter(t => t.completed).length;
+            const percent = todos.length > 0 ? (completedCount / todos.length) * 100 : 0;
+            progressBar.style.width = percent + "%";
         }
     </script>
 </body>
